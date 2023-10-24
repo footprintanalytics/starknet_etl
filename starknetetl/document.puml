@@ -1,0 +1,89 @@
+@startuml
+
+class Blocks {
+  - block_hash: string
+  - parent_hash: string
+  - block_number: int
+  - new_root: string
+  - block_timestamp: int
+  - sequencer_address: string
+  - transaction_count: int
+  - status: string
+}
+
+class Transactions {
+  - block_number: int
+  - block_timestamp: int
+  - transaction_hash: string
+  - type: string
+  - version: string
+  - max_fee: string
+  - sender_address: string
+  - chain_id: string
+  - contract_class: string
+  - compiled_class_hash: string
+  - constructor_calldata: string[]
+  - contract_address_salt: string
+  - signature: string[]
+  - nonce: string
+  - contract_address: string
+  - entry_point_selector: string
+  - calldata: string[]
+  - transaction_index: int
+}
+
+class Receipts {
+  - block_number: int
+  - block_hash: string
+  - block_timestamp: int
+  - actual_fee: string
+  - event_count: int
+  - messages_sent_count: int
+  - status: string
+  - transaction_hash: string
+  - type: string
+  - contract_address: string
+}
+
+
+class Events {
+  - transaction_hash: string
+  - block_hash: string
+  - block_number: int
+  - block_timestamp: int
+  - data: string[]
+  - from_address: string
+  - keys: string[]
+  - event_index: int
+}
+
+class Messages {
+  - transaction_hash: string
+  - block_hash: string
+  - block_number: int
+  - block_timestamp: int
+  - from_address: string
+  - to_address: string
+  - payload: string[]
+  - type: string
+}
+
+class TokenTransfers {
+  - transaction_hash: string
+  - block_hash: string
+  - block_number: int
+  - block_timestamp: int
+  - from_address: string
+  - to_address: string
+  - contract_address: string
+  - value: string[]
+  - event_index: int
+}
+
+
+Blocks -down-> Transactions : 1:n
+Transactions -down-> Receipts : 1:1
+Receipts -down-> Messages : 1:n
+Receipts -down-> Events : 1:n
+Events -down-> TokenTransfers : 1:1 if event = transfer
+@enduml
