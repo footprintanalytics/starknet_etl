@@ -1,8 +1,8 @@
 import click
 
-from starknetetl.cli.export_blocks import export_blocks
+from starknetetl.cli.export_blocks_and_transactions import export_blocks_and_transactions
 from starknetetl.cli.export_receipts import export_receipts
-from starknetetl.cli.get_block_range_for_timestamps import get_block_range_for_timestamps
+from starknetetl.cli.stream import stream
 
 
 @click.group()
@@ -13,8 +13,9 @@ def cli(ctx):
 
 
 # export
-cli.add_command(export_blocks, "export_blocks")
+cli.add_command(export_blocks_and_transactions, "export_blocks")
 cli.add_command(export_receipts, "export_receipts")
+cli.add_command(stream, "stream")
 
 # utils
-cli.add_command(get_block_range_for_timestamps, "get_block_range_for_timestamps")
+# cli.add_command(get_block_range_for_timestamps, "get_block_range_for_timestamps")

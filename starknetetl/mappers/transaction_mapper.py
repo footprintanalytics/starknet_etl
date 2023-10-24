@@ -1,78 +1,59 @@
+from starknetetl.domain.transaction import EthTransaction
+from starknetetl.utils import hex_to_dec, to_normalized_address
+
+
 class TransactionMapper:
-    def __init__(self, block_number, block_hash, block_timestamp, transaction_hash, type, version, max_fee, sender_address,
-                 chain_id, contract_class, compiled_class_hash, class_hash, constructor_calldata, contract_address_salt,
-                 signature, nonce, contract_address, entry_point_selector, calldata, transaction_index):
-        self.block_number = block_number
-        self.block_hash = block_hash
-        self.block_timestamp = block_timestamp
-        self.transaction_hash = transaction_hash
-        self.type = type
-        self.version = version
-        self.max_fee = max_fee
-        self.sender_address = sender_address
-        self.chain_id = chain_id
-        self.contract_class = contract_class
-        self.compiled_class_hash = compiled_class_hash
-        self.class_hash = class_hash
-        self.constructor_calldata = constructor_calldata
-        self.contract_address_salt = contract_address_salt
-        self.signature = signature
-        self.nonce = nonce
-        self.contract_address = contract_address
-        self.entry_point_selector = entry_point_selector
-        self.calldata = calldata
-        self.transaction_index = transaction_index
 
-    @classmethod
-    def from_dict(cls, transaction, block, transaction_index):
-        try:
-            return cls(
-                block["block_number"],
-                block['block_hash'],
-                block["timestamp"],
-                transaction["transaction_hash"],
-                transaction["type"],
-                int(str(transaction["version"]), 16),
-                int(str(transaction.get("max_fee")), 16) if transaction.get("max_fee") is not None else None,
-                transaction.get("sender_address"),
-                transaction.get("chain_id"),
-                transaction.get("contract_class"),
-                transaction.get("compiled_class_hash"),
-                transaction.get("class_hash"),
-                transaction.get("constructor_calldata"),
-                transaction.get("contract_address_salt"),
-                transaction.get("signature"),
-                int(str(transaction.get("nonce")), 16) if transaction.get("nonce") is not None else None,
-                transaction.get("contract_address"),
-                transaction.get("entry_point_selector"),
-                transaction.get("calldata"),
-                transaction_index
-            )
-        except Exception as e:
-            print(transaction)
-            raise e
+    def json_dict_to_transaction(self, json_dict, block, transaction_index):
+        transaction = EthTransaction()
+        transaction.block_hash = block.hash
+        transaction.block_number = block.number
+        transaction.block_timestamp = block.timestamp
 
-    def to_dict(self):
+        transaction.transaction_hash = json_dict.get('transaction_hash')
+        transaction.type = json_dict.get('type')
+        transaction.version = int(str(json_dict.get("version")), 16)
+        transaction.max_fee = int(str(json_dict.get("max_fee")), 16) if json_dict.get("max_fee") is not None else None
+        transaction.nonce = hex_to_dec(json_dict.get('nonce'))
+
+        transaction.sender_address = to_normalized_address(json_dict.get('sender_address'))
+        transaction.contract_address = to_normalized_address(json_dict.get("contract_address"))
+
+        transaction.chain_id = json_dict.get('chain_id')
+        transaction.contract_class = json_dict.get('contract_class')
+        transaction.compiled_class_hash = json_dict.get('compiled_class_hash')
+        transaction.class_hash = json_dict.get("class_hash")
+        transaction.constructor_calldata = json_dict.get("constructor_calldata")
+        transaction.contract_address_salt = json_dict.get("contract_address_salt")
+        transaction.signature = json_dict.get("signature")
+        transaction.nonce = int(str(json_dict.get("nonce")), 16) if json_dict.get("nonce") is not None else None
+        transaction.entry_point_selector = json_dict.get("entry_point_selector")
+        transaction.calldata = json_dict.get("calldata")
+
+        transaction.transaction_index = transaction_index
+        return transaction
+
+    def transaction_to_dict(self, transaction):
         return {
             'type': 'transaction',
-            "block_number": self.block_number,
-            "block_timestamp": self.block_timestamp,
-            "block_hash": self.block_hash,
-            "transaction_hash": self.transaction_hash,
-            "_type": self.type,
-            "version": self.version,
-            "max_fee": self.max_fee,
-            "sender_address": self.sender_address,
-            "chain_id": self.chain_id,
-            "contract_class": self.contract_class,
-            "compiled_class_hash": self.compiled_class_hash,
-            "class_hash": self.class_hash,
-            "constructor_calldata": self.constructor_calldata,
-            "contract_address_salt": self.contract_address_salt,
-            "signature": self.signature,
-            "nonce": self.nonce,
-            "contract_address": self.contract_address,
-            "entry_point_selector": self.entry_point_selector,
-            "calldata": self.calldata,
-            "transaction_index": self.transaction_index
+            'block_number': transaction.block_number,
+            'block_timestamp': transaction.block_timestamp,
+            'block_hash': transaction.block_hash,
+            'transaction_hash': transaction.transaction_hash,
+            '_type': transaction.type,
+            'version': transaction.version,
+            'max_fee': transaction.max_fee,
+            'sender_address': transaction.sender_address,
+            'chain_id': transaction.chain_id,
+            'contract_class': transaction.contract_class,
+            'compiled_class_hash': transaction.compiled_class_hash,
+            'class_hash': transaction.class_hash,
+            "constructor_calldata": transaction.constructor_calldata,
+            "contract_address_salt": transaction.contract_address_salt,
+            "contract_address": transaction.contract_address,
+            "signature": transaction.signature,
+            "nonce": transaction.nonce,
+            "entry_point_selector": transaction.entry_point_selector,
+            "calldata": transaction.calldata,
+            "transaction_index": transaction.transaction_index
         }

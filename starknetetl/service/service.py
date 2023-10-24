@@ -1,3 +1,4 @@
+
 class StarknetService:
     def __init__(self, rpc):
         self.rpc = rpc

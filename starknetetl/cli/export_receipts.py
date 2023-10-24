@@ -1,6 +1,7 @@
 import click
 from blockchainetl_common.file_utils import smart_open
 
+from starknetetl import misc_utils
 from starknetetl.jobs.export_receipts_job import ExportReceiptsJob
 from starknetetl.jobs.exporters.receipts_item_exporter import receipts_item_exporter
 from starknetetl.rpc.rpc import StarknetRpc
@@ -50,7 +51,15 @@ def export_receipts(transaction_hash, provider_uri, max_workers, batch_size,
 
 #
 # if __name__ == '__main__':
-#     export_receipts(96872, 97776, 'https://starknet-mainnet.g.alchemy.com/v2/2tSCWM-b6JT-Ju4Cbu-ba2bRxStPbGP4', 2,2,
-#                   '/Users/pen/cryptoProject/ethereum-etl-airflow/dags/data/starknet/blocks_2023-07-25.json',
-#                   '/Users/pen/cryptoProject/ethereum-etl-airflow/dags/data/starknet/transactions_2023-07-25.json',
-#                   )
+#     transaction_hash = 'transactions.txt'
+#     misc_utils.extract_field('transactions_2023-07-25-test.json', transaction_hash, 'transaction_hash')
+#
+#     export_receipts(
+#         transaction_hash = transaction_hash,
+#         provider_uri='',
+#         max_workers=2,batch_size=2,
+#         receipt_output = 'receipt_output.json',
+#         message_output = 'message_output.json',
+#         token_transfer_output = 'token_transfer_output.json',
+#         event_output = 'event_output.json'
+#     )

@@ -23,12 +23,16 @@ import logging
 import random
 
 import click
-from blockchainetl.streaming.streaming_utils import configure_signals, configure_logging
-from ethereumetl.enumeration.entity_type import EntityType
+from blockchainetl_common.streaming.streamer import Streamer
+from blockchainetl_common.streaming.streaming_utils import configure_logging, configure_signals
 
-from ethereumetl.providers.auto import get_provider_from_uri
-from ethereumetl.streaming.item_exporter_creator import create_item_exporters
-from ethereumetl.thread_local_proxy import ThreadLocalProxy
+from starknetetl.rpc.rpc import StarknetRpc
+from starknetetl.streaming.streamer_adapter import StreamerAdapter
+
+from starknetetl.enumeration.entity_type import EntityType
+from starknetetl.providers.auto import get_provider_from_uri
+from starknetetl.streaming.item_exporter_creator import create_item_exporters
+from starknetetl.thread_local_proxy import ThreadLocalProxy
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
@@ -60,14 +64,12 @@ def stream(last_synced_block_file, lag, provider_uri, output, start_block, entit
     configure_signals()
     entity_types = parse_entity_types(entity_types)
 
-    from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
-    from blockchainetl.streaming.streamer import Streamer
-
     # TODO: Implement fallback mechanism for provider uris instead of picking randomly
     provider_uri = pick_random_provider_uri(provider_uri)
     logging.info('Using ' + provider_uri)
 
-    streamer_adapter = EthStreamerAdapter(
+    streamer_adapter = StreamerAdapter(
+        rpc=ThreadLocalProxy(lambda: StarknetRpc(provider_uri)),
         batch_web3_provider=ThreadLocalProxy(lambda: get_provider_from_uri(provider_uri, batch=True)),
         item_exporter=create_item_exporters(output),
         batch_size=batch_size,
@@ -102,3 +104,14 @@ def parse_entity_types(entity_types):
 def pick_random_provider_uri(provider_uri):
     provider_uris = [uri.strip() for uri in provider_uri.split(',')]
     return random.choice(provider_uris)
+
+# if __name__ == '__main__':
+#     kafka_topic_prefix = 'starknet_chain_data_'
+#     stream(
+#         last_synced_block_file='last_synced_block.txt',
+#         lag=10,
+#         provider_uri='',
+#         output=f'kafka/10.10.16.38/{kafka_topic_prefix}',
+#         start_block=None,
+#         entity_types=','.join(EntityType.ALL_FOR_STREAMING),
+#         period_seconds=10, batch_size=2, block_batch_size=1, max_workers=2)

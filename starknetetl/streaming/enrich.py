@@ -59,42 +59,46 @@ def join(left, right, join_fields, left_fields, right_fields):
 
 def enrich_transactions(transactions, receipts):
     result = list(join(
-        transactions, receipts, ('hash', 'transaction_hash'),
+        transactions, receipts, ('transaction_hash', 'transaction_hash'),
         left_fields=[
             'type',
-            'hash',
-            'nonce',
-            'transaction_index',
-            'from_address',
-            'to_address',
-            'value',
-            'gas',
-            'gas_price',
-            'input',
             'block_timestamp',
             'block_number',
             'block_hash',
-            'max_fee_per_gas',
-            'max_priority_fee_per_gas',
-            'transaction_type'
+            'transaction_hash',
+            '_type',
+            'version',
+            'max_fee',
+            'sender_address',
+            'chain_id',
+            'contract_class',
+            'compiled_class_hash',
+            'class_hash',
+            "constructor_calldata",
+            "contract_address_salt",
+            "contract_address",
+            "signature",
+            "nonce",
+            "entry_point_selector",
+            "calldata",
+            "transaction_index"
         ],
         right_fields=[
-            ('cumulative_gas_used', 'receipt_cumulative_gas_used'),
-            ('gas_used', 'receipt_gas_used'),
-            ('contract_address', 'receipt_contract_address'),
-            ('root', 'receipt_root'),
-            ('status', 'receipt_status'),
-            ('effective_gas_price', 'receipt_effective_gas_price'),
-            ('l1_fee', 'receipt_l1_fee'),
-            ('l1_gas_used', 'receipt_l1_gas_used'),
-            ('l1_gas_price', 'receipt_l1_gas_price'),
-            ('l1_fee_scalar', 'receipt_l1_fee_scalar')
-
+            "actual_fee",
+            "event_count",
+            "messages_sent_count",
+            "status",
+            ('contract_address', 'receipt_contract_address')
         ]))
 
     if len(result) != len(transactions):
         raise ValueError('The number of transactions is wrong ' + str(result))
 
+    # fix
+    for item in result:
+        receipt_contract_address = item.pop('receipt_contract_address')
+        if item['_type'] in {'DEPLOY_ACCOUNT', 'DEPLOY'}:
+            item['contract_address'] = receipt_contract_address
     return result
 
 
@@ -122,22 +126,70 @@ def enrich_logs(blocks, logs):
     return result
 
 
-def enrich_token_transfers(blocks, token_transfers):
+def enrich_events(blocks, events):
     result = list(join(
-        token_transfers, blocks, ('block_number', 'number'),
+        events, blocks, ('block_number', 'block_number'),
         [
             'type',
-            'token_address',
-            'from_address',
-            'to_address',
-            'value',
             'transaction_hash',
-            'log_index',
-            'block_number'
+            'block_hash',
+            'block_number',
+            'data',
+            'from_address',
+            'keys',
+            'event_index'
         ],
         [
-            ('timestamp', 'block_timestamp'),
-            ('hash', 'block_hash'),
+            'block_timestamp'
+        ]))
+
+    if len(result) != len(events):
+        raise ValueError('The number of events is wrong ' + str(result))
+
+    return result
+
+
+def enrich_messages(blocks, messages):
+    result = list(join(
+        messages, blocks, ('block_number', 'block_number'),
+        [
+            'type',
+            'transaction_hash',
+            'block_hash',
+            'block_number',
+            'from_address',
+            'to_address',
+            'payload',
+            '_type',
+            ('L2ToL1', 'direction')
+        ],
+        [
+            'block_timestamp'
+        ]))
+
+    if len(result) != len(messages):
+        raise ValueError('The number of messages is wrong ' + str(result))
+
+    # TODO Union transactions call data
+    return result
+
+
+def enrich_token_transfers(blocks, token_transfers):
+    result = list(join(
+        token_transfers, blocks, ('block_number', 'block_number'),
+        [
+            'type',
+            'transaction_hash',
+            'block_hash',
+            'block_number',
+            'from_address',
+            'to_address',
+            'contract_address',
+            'value',
+            'event_index',
+        ],
+        [
+            ('block_timestamp', 'block_timestamp')
         ]))
 
     if len(result) != len(token_transfers):
@@ -148,7 +200,7 @@ def enrich_token_transfers(blocks, token_transfers):
 
 def enrich_traces(blocks, traces):
     result = list(join(
-        traces, blocks, ('block_number', 'number'),
+        traces, blocks, ('block_number', 'block_number'),
         [
             'type',
             'transaction_index',

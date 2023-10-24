@@ -1,4 +1,3 @@
-import pydash
 
 from starknetetl.mappers.event_mapper import EventMapper
 from starknetetl.mappers.receipt_mapper import ReceiptMapper
@@ -13,7 +12,7 @@ TOKEN_TRANSFER_EVENT = "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d1
 class ExportReceiptsJob(BaseJob):
     def __init__(
             self,
-            transaction_hash_iterable,
+            transaction_hashes_iterable,
             batch_size,
             rpc,
             max_workers,
@@ -23,7 +22,7 @@ class ExportReceiptsJob(BaseJob):
             export_events=True,
             export_token_transfers=True):
         self.rpc = rpc
-        self.transaction_hash_iterable = transaction_hash_iterable
+        self.transaction_hashes_iterable = transaction_hashes_iterable
 
         self.item_exporter = item_exporter
         self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)  # 这里因为sui有自带的batch功能, 这里默认size为1
@@ -46,7 +45,7 @@ class ExportReceiptsJob(BaseJob):
         self.item_exporter.open()
 
     def _export(self):
-        self.batch_work_executor.execute(self.transaction_hash_iterable, self._export_alls)
+        self.batch_work_executor.execute(self.transaction_hashes_iterable, self._export_alls)
 
     def _export_alls(self, transaction_hashes):
         receipts = self.service.get_transaction_receipts(transaction_hashes)
