@@ -170,7 +170,9 @@ def enrich_messages(blocks, messages):
     if len(result) != len(messages):
         raise ValueError('The number of messages is wrong ' + str(result))
 
-    # TODO Union transactions call data
+    for item in result:
+        item['direction'] = 'L2ToL1'
+
     return result
 
 
